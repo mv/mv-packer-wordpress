@@ -54,8 +54,10 @@ build {
     direction   = "upload"
     destination = "/tmp/"
     sources = [
-      "../config/apache-wordpress.conf",
       "../config/wp-config.php",
+      "../config/apache-wordpress.conf",
+      "../config/localhost-selfsigned-cert.pem",
+      "../config/localhost-selfsigned-priv.key",
     ]
   }
 
