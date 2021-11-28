@@ -35,33 +35,45 @@ locals {
 #     owners = ["099720109477"]
 #     most_recent = true
 # }
+#
 
+# Source: AMI Filter
+# aws ec2 describe-images \
+#   --owners 099720109477 \
+#   --filters \
+#       "Name=virtualization-type,Values=hvm" \
+#       "Name=root-device-type,Values=ebs"    \
+#       "Name=name,Values=ubuntu-minimal/images/*ubuntu-focal-20.04-*" \
+#   --query 'Images[*].[OwnerId,Architecture,VirtualizationType,Name,ImageId]' \
+#   --output text | sort
+#
 
 source "amazon-ebs" "mv-ubuntu" {
+
+  source_ami_filter {
+    filters = {
+      virtualization-type = "hvm"
+      root-device-type    = "ebs"
+      name                = "ubuntu/images/*ubuntu-hirsute-21.04-*"
+#     name                = "ubuntu/images/*ubuntu-focal-20.04-*"
+    }
+    owners      = ["099720109477"]
+    most_recent = true
+  }
 
   ami_name      = "mv-ubuntu-${local.timestamp}"
   region        = "us-east-1"
   instance_type = "t2.micro"
   ssh_username  = "ubuntu"
 
-  source_ami_filter {
-    filters = {
-      virtualization-type = "hvm"
-      root-device-type    = "ebs"
-      name                = "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
-    }
-    most_recent = true
-    owners      = ["099720109477"]
-  }
-
 }
 
 build {
-  name    = "mv-packer-ubuntu"
+  name    = "mv-packer-ubuntu-21"
   sources = [ "source.amazon-ebs.mv-ubuntu" ]
 
   provisioner "file" {
-    source      = "../tf-packer.pub"
+    source      = "../scripts/"
     destination = "/tmp/tf-packer.pub"
   }
 
@@ -72,7 +84,7 @@ build {
   provisioner "shell" {
     inline = [
       "/bin/echo --- Machine details",
-      "/bin/date",
+      "/bin/cat /etc/os-release",
       "/bin/echo --- Filesystem",
       "/bin/df -h | /bin/egrep -v loop",
       "/bin/echo --- CPU",
