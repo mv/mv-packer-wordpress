@@ -34,31 +34,38 @@ sudo apt-get -y install \
     php-zip             \
 
 
-sudo echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+# sudo echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
 
 
 # Wordpress: latest
 sudo mkdir -p /srv/www
 
-curl -s https://wordpress.org/wordpress-5.8.2.tar.gz \
+curl -s https://wordpress.org/wordpress-5.8.1.tar.gz \
   | sudo tar xz -C /srv/www
-
-sudo /bin/cp \
-     /tmp/wp-config.php \
-     /srv/www/wordpress/wp-config.php
 
 sudo chown -R www-data:www-data /srv/www
 
-# Disable Apache default page
+# Apache: Disable Apache default page
 sudo a2dissite 000-default
 
-# Enable WP
+# Apache: enable WP
 sudo /bin/cp \
      /tmp/apache-wordpress.conf \
      /etc/apache2/sites-available/wordpress.conf
 
 sudo a2ensite wordpress
 sudo a2enmod rewrite
+
+sudo /bin/cp \
+     /tmp/localhost-selfsigned-cert.pem \
+     /etc/ssl/certs/
+
+sudo /bin/cp \
+     /tmp/localhost-selfsigned-priv.key \
+     /etc/ssl/private/
+
+# Apache: enable SSL
+sudo a2enmod ssl
 
 sudo service apache2 restart
 
