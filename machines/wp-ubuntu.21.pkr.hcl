@@ -16,26 +16,16 @@ packer {
 
 ## Variables
 
+variables {
+  os_version = "20.04"
+  os_owners  = ["099720109477"]
+}
+
 locals {
-  t1 = regex_replace(timestamp(), "[Z]", "" )
-  t2 = regex_replace(local.t1   , "[:]", "-")
-  timestamp = local.t2
+  timestamp = formatdate( "YYYY-MM-DD'T'hh.mm.ss.Z", timestamp())
 }
 
 ## Data Source
-# Amazon AMI Data Source
-# https://www.packer.io/docs/datasources/amazon/AMI
-#
-#   cmdline: Source: AMI Filter
-#   aws ec2 describe-images \
-#     --owners 099720109477 \
-#     --filters \
-#         "Name=virtualization-type,Values=hvm" \
-#         "Name=root-device-type,Values=ebs"    \
-#         "Name=name,Values=ubuntu-minimal/images/*ubuntu-*-21.04-*" \
-#     --query 'Images[*].[OwnerId,Architecture,VirtualizationType,Name,ImageId]' \
-#     --output text | sort
-#
 
 source "amazon-ebs" "wp-ubuntu" {
 
@@ -43,13 +33,13 @@ source "amazon-ebs" "wp-ubuntu" {
     filters = {
       virtualization-type = "hvm"
       root-device-type    = "ebs"
-      name                = "ubuntu/images/*ubuntu-*-21.04-*"
+      name                = "ubuntu/images/*ubuntu-*-${var.os_version}-*"
     }
-    owners      = ["099720109477"]
+    owners      = "${var.os_owners}"
     most_recent = true
   }
 
-  ami_name      = "wp-ubuntu-${local.timestamp}"
+  ami_name      = "wp-ubuntu-${var.os_version}-${local.timestamp}"
   region        = "us-east-1"
   instance_type = "t2.micro"
   ssh_username  = "ubuntu"
@@ -57,17 +47,16 @@ source "amazon-ebs" "wp-ubuntu" {
 }
 
 build {
-  name    = "wp-packer-ubuntu-21"
+  name    = "packer-wp-ubuntu"
   sources = [ "source.amazon-ebs.wp-ubuntu" ]
 
   provisioner "file" {
-    source      = "../config/apache-wordpress.conf"
+    direction   = "upload"
     destination = "/tmp/"
-  }
-
-  provisioner "file" {
-    source      = "../config/wp-config.php"
-    destination = "/tmp/"
+    sources = [
+      "../config/apache-wordpress.conf",
+      "../config/wp-config.php",
+    ]
   }
 
   provisioner "shell" {
