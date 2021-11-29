@@ -1,7 +1,4 @@
-
-
-#
-# https://ubuntu.com/tutorials/install-and-configure-wordpress
+#!/bin/bash
 #
 # Ubuntu Server 21.04 LTS
 # PHP 7.4
@@ -15,8 +12,7 @@ sudo apt-get -y update
 sudo apt-get -y upgrade
 
 
-# PHP
-
+# Apache + PHP
 sudo apt-get -y install \
     apache2             \
     ghostscript         \
@@ -40,7 +36,7 @@ sudo apt-get -y install \
 # Wordpress: latest
 sudo mkdir -p /srv/www
 
-curl -s https://wordpress.org/wordpress-5.8.1.tar.gz \
+curl -s https://wordpress.org/wordpress-5.8.2.tar.gz \
   | sudo tar xz -C /srv/www
 
 sudo chown -R www-data:www-data /srv/www
@@ -50,7 +46,7 @@ sudo a2dissite 000-default
 
 # Apache: enable WP
 sudo /bin/cp \
-     /tmp/apache-wordpress.conf \
+     /tmp/dev.apache.wordpress.conf \
      /etc/apache2/sites-available/wordpress.conf
 
 sudo a2ensite wordpress
