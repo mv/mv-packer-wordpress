@@ -41,8 +41,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
           #
-
-          # Get config files from a S3 private bucket (S3Vault)
+          # Example 1: install via script
           /bin/bash /srv/s3-get-files.sh "s3://${S3Vault}/${WPSite}/${WPEnv}"
 
           #
