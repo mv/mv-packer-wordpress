@@ -1,7 +1,4 @@
-
-
-#
-# https://ubuntu.com/tutorials/install-and-configure-wordpress
+#!/bin/bash
 #
 # Amazon Linux v2
 # PHP 7.4
@@ -11,15 +8,17 @@
 sudo yum update -y
 sudo yum install amazon-linux-extras -y
 
-
-# PHP
-
+# Apache et al
 sudo yum install -y     \
     httpd               \
+    httpd-tools         \
     mod_ssl             \
     ghostscript         \
     mariadb             \
-    php-mysql           \
+
+# PHP
+sudo amazon-linux-extras enable php7.4
+sudo yum install -y     \
     php                 \
     php-bcmath          \
     php-curl            \
@@ -27,7 +26,7 @@ sudo yum install -y     \
     php-intl            \
     php-json            \
     php-mbstring        \
-    php-mysql           \
+    php-mysqlnd         \
     php-xml             \
     php-zip             \
 
@@ -40,13 +39,11 @@ curl -s https://wordpress.org/wordpress-5.8.2.tar.gz \
 
 sudo chown -R apache:apache /srv/www
 
-# Apache: Disable Apache default page
-#udo a2dissite 000-default
 
-# Apache: enable WP
+# Apache: enable site WP
 sudo /bin/cp \
      /tmp/dev.apache.wordpress.conf \
-     /etc/httpd/conf.d/
+     /etc/httpd/conf.d/wordpress.conf
 
 # Apache: enable SSL
 cd /etc/ssl && sudo ln -snf ../pki/tls/private
@@ -60,6 +57,6 @@ sudo /bin/cp \
      /etc/pki/tls/private/
 
 
-sudo service httpd restart
+sudo /bin/systemctl restart httpd.service
 
 
