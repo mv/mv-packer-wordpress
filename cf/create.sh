@@ -1,7 +1,8 @@
 
 aws cloudformation \
   create-stack --stack-name "wp-01" \
-  --template-body file://./ec2-wp-public.cf.yaml
+  --template-body file://./wp-ec2-deploy.cf.yaml \
+  --capabilities CAPABILITY_IAM
 
 
 while true;

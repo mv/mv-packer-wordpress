@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Using Wordpress AMI
+
+Parameters:
+
+  InstanceType: { Type: String, Default: "t2.small"                 }
+  AMI:          { Type: String, Default: "ami-04af86f7b431c4016"    }
+  SubnetId:     { Type: String, Default: "subnet-08d490971248bcc33" }
+  SGId:         { Type: String, Default: "sg-0a88f80080aac3024"     }
+  KeyName:      { Type: String, Default: "marcus_anirul_id_rsa"     }
+
+
+Resources:
+
+  WP01:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: { Ref: InstanceType }
+      ImageId: { Ref: AMI }
+      KeyName: { Ref: KeyName }
+
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: [ Ref: SGId ]
+          SubnetId: { Ref: SubnetId }
+
+      Tags:
+        - {Key: "Name"    , Value: "wp-01"}
+        - {Key: "App"     , Value: "wordpress"}
+        - {Key: "Customer", Value: "AGE"}
+
