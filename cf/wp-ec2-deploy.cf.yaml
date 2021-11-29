@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Wordpress deploy using separate config files
+
+Parameters:
+
+  InstanceType: { Type: String, Default: "t2.micro"                 }
+  AMI:          { Type: String, Default: "ami-04af86f7b431c4016"    }
+  SubnetId:     { Type: String, Default: "subnet-08d490971248bcc33" }
+  SGId:         { Type: String, Default: "sg-0a88f80080aac3024"     }
+  KeyName:      { Type: String, Default: "marcus_anirul_id_rsa"     }
+
+  S3Vault:      { Type: String, Default: "internal-mv-config"       }
+  WPSite:       { Type: String, Default: "wp/age/site-institucional"}
+  WPEnv:        { Type: String, Default: "prod"                     }
+
+
+Resources:
+
+  WP01:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: { Ref: InstanceType }
+      ImageId: { Ref: AMI }
+      KeyName: { Ref: KeyName }
+
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: [ Ref: SGId ]
+          SubnetId: { Ref: SubnetId }
+
+      Tags:
+        - {Key: "Name"    , Value: "wp-01"}
+        - {Key: "App"     , Value: "wordpress"}
+        - {Key: "Customer", Value: "AGE"}
+
+      IamInstanceProfile:
+        !Ref MyInstanceProfile
+
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          #
+
+          # Get config files from a S3 private bucket (S3Vault)
+          /bin/bash /srv/s3-get-files.sh "s3://${S3Vault}/${WPSite}/${WPEnv}"
+
+          #
+          # EOF
+          #
+
+
+  ## IAM Role:
+  ##   to be attached to the EC2 Instance Profile
+  MyEC2Role:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+
+  MyInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles: [ Ref: "MyEC2Role" ]
+
+
+  ## IAM Role Permissions:
+  ##   access to S3 config files
+  S3VaultPermissions:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: S3VaultPermissions
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:GetObject' ]
+            Resource:
+              !Sub "arn:aws:s3:::${S3Vault}/${WPSite}/${WPEnv}*"
+      Roles:
+        - Ref: "MyEC2Role"
+
+
