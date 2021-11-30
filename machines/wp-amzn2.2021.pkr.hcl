@@ -43,6 +43,7 @@ source "amazon-ebs" "wp-amzn2" {
 
   ami_description = "Wordpress"
   ami_name      = "wp-amzn2-${var.os_version}-${local.timestamp}"
+
   region        = "us-east-1"
 # instance_type = "t4g.micro"
   instance_type = "t2.micro"
@@ -52,6 +53,11 @@ source "amazon-ebs" "wp-amzn2" {
     Name = "wp-amzn2"
     App = "wordpress"
   }
+
+# vpc_id = ""
+# subnet_id = ""
+# security_group_id = ""
+# associate_public_ip_address = true
 
 }
 
