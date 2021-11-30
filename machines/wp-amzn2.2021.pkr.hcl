@@ -59,6 +59,16 @@ build {
   name    = "packer-wp-amzn2"
   sources = [ "source.amazon-ebs.wp-amzn2" ]
 
+  provisioner "shell-local" {
+    inline = [
+      "echo 'SSH Private Key: '",
+      "echo '${build.SSHPrivateKey}'",
+      "echo '${build.SSHPrivateKey}' > ./ec2-packer-session.pem",
+      "echo 'ssh -i ec2-packer-session.pem -l ${build.User} ${build.Host}'"
+      "chmod 600 ./ec2-packer-session.pem",
+    ]
+  }
+
   provisioner "file" {
     direction   = "upload"
     destination = "/tmp/"
@@ -84,9 +94,10 @@ build {
     ]
   }
 
+
   provisioner "breakpoint" {
     disable = false
-    note    = "Breakpoint: to troubleshoot 'first' executions"
+    note    = "Breakpoint: ssh -i ec2-packer-session.pem -l ${build.User} ${build.Host}"
   }
 
 }
