@@ -7,34 +7,19 @@ packer {
   # https://www.packer.io/docs/builders/amazon
   required_plugins {
     amazon = {
-      version = ">= 0.0.2"
+      version = ">= 1.0.0"
       source  = "github.com/hashicorp/amazon"
     }
   }
 
 }
 
-## Data Source
-# Amazon AMI Data Source
-# https://www.packer.io/docs/datasources/amazon/AMI
+source "amazon-ebs" "wp-amzn2" {
 
-# data "amazon-ami" "basic-example" {
-#     filters = {
-#         virtualization-type = "hvm"
-#         name = "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
-#         root-device-type = "ebs"
-#     }
-#     owners = ["099720109477"]
-#     most_recent = true
-# }
-
-
-source "amazon-ebs" "mv-ubuntu" {
-
-  ami_name      = "mv-ubuntu"
+  ami_name      = "wp-amzn2"
   region        = "us-east-1"
   instance_type = "t2.micro"
-  ssh_username  = "ubuntu"
+  ssh_username  = "ec2-user"
 
   source_ami_filter {
     filters = {

@@ -10,29 +10,31 @@ then
     exit 1
 fi
 
-src="$1"
+_src="${1}"
+_env="${2}"
 
 echo_cp() {
 
-  echo "  Copy: [${1}] to [${2}] "
+  echo "    Copy: [${1}] to [${2}] "
 
   # get local copy
-  /usr/bin/aws s3 cp ${1} /srv/
+  /usr/bin/aws s3 cp ${_src}/${_env}.${1} /tmp/
 
   # final destination
-  /bin/cp /srv/${1} ${2}
+  sudo /bin/cp /tmp/${_env}.${1} ${2}
+  echo
 
 }
 
-echo_cp ${src}.apache.wordpress.conf   /etc/apache2/sites-available/wordpress.conf
-echo_cp ${src}.wp-config.php           /srv/www/wordpress/wp-config.php
-echo_cp ${src}.wp-config.db-access.php /srv/www/wordpress/wp-config.db-access.php
-echo_cp ${src}.wp-config.salt-keys.php /srv/www/wordpress/wp-config.salt-keys.php
+#cho_cp apache.wordpress.conf   /etc/apache2/sites-available/wordpress.conf
+echo_cp apache.wordpress.conf   /etc/httpd/conf.d/wordpress.conf
+echo_cp wp-config.php           /srv/www/wordpress/wp-config.php
+echo_cp wp-config.db-access.php /srv/www/wordpress/wp-config.db-access.php
+echo_cp wp-config.salt-keys.php /srv/www/wordpress/wp-config.salt-keys.php
 
-#echo_cp ${src}.ssl-cert.pem /etc/ssl/certs/
-#echo_cp ${src}.ssl-priv.key /etc/ssl/private/
+#echo_cp ${_env}.ssl-cert.pem /etc/ssl/certs/
+#echo_cp ${_env}.ssl-priv.key /etc/ssl/private/
 
-service apache2 restart
-
-
+#ervice apache2 restart
+service httpd restart
 

@@ -42,7 +42,7 @@ Resources:
           #!/bin/bash -xe
           #
           # Example 1: install via script
-          /bin/bash /srv/s3-get-files.sh "s3://${S3Vault}/${WPSite}/${WPEnv}"
+          /bin/bash -xe /srv/s3-get-files.sh "s3://${S3Vault}/${WPSite}"  "${WPEnv}"
 
           #
           # EOF
@@ -88,5 +88,11 @@ Resources:
               !Sub "arn:aws:s3:::${S3Vault}/${WPSite}/${WPEnv}*"
       Roles:
         - Ref: "MyEC2Role"
+
+
+Outputs:
+
+  InstanceId:  {Description: "Instance id" , Value:{"Ref": "WP01"                        }, Export:{ Name:{"Fn::Sub": "${AWS::StackName}-InstanceId" } } }
+  InstanceIP:  {Description: "Instance IP" , Value:{"Fn::GetAtt":["WP01","PublicIp"     ]}, Export:{ Name:{"Fn::Sub": "${AWS::StackName}-InstanceIP" } } }
 
 

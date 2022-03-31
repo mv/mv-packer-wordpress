@@ -8,6 +8,18 @@
 sudo yum update -y
 sudo yum install amazon-linux-extras -y
 
+
+
+echo MV
+echo MV
+echo MV
+echo MV
+echo MV
+echo MV
+
+
+
+
 # Apache et al
 sudo yum install -y     \
     httpd               \
@@ -58,5 +70,12 @@ sudo /bin/cp \
 
 
 sudo /bin/systemctl restart httpd.service
+
+
+## For future deploys...
+sudo yum install -y awscli
+sudo /bin/cp  /tmp/s3-get-files.sh /srv/
+sudo chmod +x /srv/s3-get-files.sh
+
 
 

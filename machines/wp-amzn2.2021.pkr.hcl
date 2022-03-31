@@ -33,8 +33,8 @@ source "amazon-ebs" "wp-amzn2" {
     filters = {
       virtualization-type = "hvm"
       root-device-type    = "ebs"
-#     architecture        = "arm64"
-      architecture        = "x86_64"
+      architecture        = "arm64"
+#     architecture        = "x86_64"
       name                = "amzn2-ami-minimal-hvm*${var.os_version}*"
     }
     owners      = "${var.os_owners}"
@@ -45,8 +45,8 @@ source "amazon-ebs" "wp-amzn2" {
   ami_name      = "wp-amzn2-${var.os_version}-${local.timestamp}"
 
   region        = "us-east-1"
-# instance_type = "t4g.micro"
-  instance_type = "t2.micro"
+  instance_type = "t4g.micro"
+# instance_type = "t2.micro"
   ssh_username  = "ec2-user"
 
   tags = {
@@ -54,10 +54,11 @@ source "amazon-ebs" "wp-amzn2" {
     App = "wordpress"
   }
 
-# vpc_id = ""
-# subnet_id = ""
-# security_group_id = ""
-# associate_public_ip_address = true
+  # VPC: specific for Packer buildings
+  vpc_id = "vpc-0d89d8a1f4a74b7e3"
+  subnet_id = "subnet-0747b2cc5f3b5a984"
+  security_group_id = "sg-03c7c71888c0839f7"
+  associate_public_ip_address = true
 
 }
 
@@ -70,7 +71,7 @@ build {
       "echo 'SSH Private Key: '",
       "echo '${build.SSHPrivateKey}'",
       "echo '${build.SSHPrivateKey}' > ./ec2-packer-session.pem",
-      "echo 'ssh -i ec2-packer-session.pem -l ${build.User} ${build.Host}'"
+      "echo 'ssh -i ec2-packer-session.pem -l ${build.User} ${build.Host}'",
       "chmod 600 ./ec2-packer-session.pem",
     ]
   }

@@ -1,0 +1,192 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Using Wordpress AMI
+
+Parameters:
+
+  InstanceType: { Type: String, Default: "t2.micro"                 }
+  AMI:          { Type: String, Default: "ami-04af86f7b431c4016"    }
+  SubnetId:     { Type: String, Default: "subnet-08d490971248bcc33" }
+  SGId:         { Type: String, Default: "sg-0a88f80080aac3024"     }
+  KeyName:      { Type: String, Default: "marcus_anirul_id_rsa"     }
+
+  S3Vault:      { Type: String, Default: "internal-mv-config"       }
+  WPSite:       { Type: String, Default: "wp/age/site-institucional"}
+  WPEnv:        { Type: String, Default: "prod"                     }
+
+  wpSubnet01:   { Type: String, Default: "subnet-06a0416904f0eba16" }
+  wpSubnet02:   { Type: String, Default: "subnet-08d490971248bcc33" }
+  wpSubnet03:   { Type: String, Default: "subnet-0171903b634d2cc31" }
+
+
+Resources:
+
+  WPAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: wp-asg-01
+      MinSize: "1"
+      MaxSize: "6"
+      DesiredCapacity: "2"
+      Cooldown: 300
+      HealthCheckGracePeriod: 300
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WPLaunchTemplate
+        Version: !GetAtt WPLaunchTemplate.LatestVersionNumber
+
+      VPCZoneIdentifier:
+        - !Ref wpSubnet01
+        - !Ref wpSubnet02
+        - !Ref wpSubnet03
+
+      MetricsCollection:
+        - Granularity: "1Minute"
+          Metrics:
+            - "GroupMinSize"
+            - "GroupMaxSize"
+
+      LoadBalancerNames: [ !Ref MyLoadBalancer ]
+
+      Tags:
+        - {Key: "Name"    , Value: "wp-asg"}
+        - {Key: "App"     , Value: "wordpress"}
+        - {Key: "Customer", Value: "AGE"}
+
+
+  WPLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+
+    Properties:
+      LaunchTemplateName: !Sub ${AWS::StackName}-launch-template
+
+      LaunchTemplateData:
+        InstanceType: !Ref InstanceType
+        ImageId: !Ref AMI
+        KeyName: !Ref KeyName
+
+        SecurityGroupIds:
+          - !Ref SGId
+
+        Monitoring:
+          Enabled: true
+
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: "true"
+            DeviceIndex: "0"
+            GroupSet: [ Ref: SGId ]
+            SubnetId: { Ref: SubnetId }
+
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            #
+            # Example 1: install via script
+            /bin/bash -xe /srv/s3-get-files.sh "s3://${S3Vault}/${WPSite}"  "${WPEnv}"
+
+            #
+            # EOF
+            #
+
+        IamInstanceProfile: !Ref MyInstanceProfile
+
+##      Tags:
+##        - {Key: "Name"    , Value: "wp-asg"}
+##        - {Key: "App"     , Value: "wordpress"}
+##        - {Key: "Customer", Value: "AGE"}
+##        - {Key: "Test"    , Value: "EC2"}
+
+#     Tags:
+#       - {Key: "Name"    , Value: "wp-asg"}
+#       - {Key: "App"     , Value: "wordpress"}
+#       - {Key: "Customer", Value: "AGE"}
+#       - {Key: "Test"    , Value: "LaunchConfig"}
+
+
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+
+    Properties:
+
+      Subnets:
+        - !Ref wpSubnet01
+        - !Ref wpSubnet02
+        - !Ref wpSubnet03
+
+      CrossZone: true
+
+      Listeners:
+        - LoadBalancerPort: '80'
+          Protocol: HTTP
+          InstancePort: '443'
+          InstanceProtocol: HTTPS
+          #PolicyNames:
+          #  - My-SSLNegotiation-Policy
+          #SSLCertificateId: arn:aws:iam::123456789012:server-certificate/my-server-certificate
+
+      HealthCheck:
+        Target: HTTP:80/
+        HealthyThreshold: '3'
+        UnhealthyThreshold: '5'
+        Interval: '10'
+        Timeout: '5'
+
+      Tags:
+        - {Key: "Name"    , Value: "wp-asg"}
+        - {Key: "App"     , Value: "wordpress"}
+        - {Key: "Customer", Value: "AGE"}
+        - {Key: "Test"    , Value: "ELB"}
+
+#     Policies:
+#       - PolicyName: My-SSLNegotiation-Policy
+#         PolicyType: SSLNegotiationPolicyType
+#
+#         Attributes:
+#           - Name: Reference-Security-Policy
+#             Value: ELBSecurityPolicy-TLS-1-2-2017-01
+#
+
+  ## IAM Role:
+  ##   to be attached to the EC2 Instance Profile
+  #  MyEC2Role:
+  #    Type: "AWS::IAM::Role"
+  #    Properties:
+  #      AssumeRolePolicyDocument:
+  #        Version: "2012-10-17"
+  #        Statement:
+  #          -
+  #            Effect: "Allow"
+  #            Principal:
+  #              Service:
+  #                - "ec2.amazonaws.com"
+  #            Action:
+  #              - "sts:AssumeRole"
+  #      Path: "/"
+  #
+  #  MyInstanceProfile:
+  #    Type: "AWS::IAM::InstanceProfile"
+  #    Properties:
+  #      Path: "/"
+  #      Roles: [ Ref: "MyEC2Role" ]
+  #
+  #
+  #  ## IAM Role Permissions:
+  #  ##   access to S3 config files
+  #  S3VaultPermissions:
+  #    Type: 'AWS::IAM::Policy'
+  #    Properties:
+  #      PolicyName: S3VaultPermissions
+  #      PolicyDocument:
+  #        Version: "2012-10-17"
+  #        Statement:
+  #          - Effect: Allow
+  #            Action: [ 's3:GetObject' ]
+  #            Resource:
+  #              !Sub "arn:aws:s3:::${S3Vault}/${WPSite}/${WPEnv}*"
+  #      Roles:
+  #        - Ref: "MyEC2Role"
+  #
+
+Outputs:
+
+  ELB:  {Description: "ELB" , Value:{"Ref": "MyLoadBalancer" }, Export:{ Name:{"Fn::Sub": "${AWS::StackName}-ELB" } } }
+
+

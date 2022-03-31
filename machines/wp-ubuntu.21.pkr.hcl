@@ -54,10 +54,10 @@ build {
     direction   = "upload"
     destination = "/tmp/"
     sources = [
-      "../config/wp-config.php",
-      "../config/apache-wordpress.conf",
+      "../config/dev.apache.wordpress.conf",
       "../config/localhost-selfsigned-cert.pem",
       "../config/localhost-selfsigned-priv.key",
+      "../scripts/s3-get-files.sh",
     ]
   }
 
@@ -73,6 +73,11 @@ build {
       "/bin/cat /proc/cpuinfo | /bin/egrep -i '^cpu|model' | sort",
       "/bin/echo",
     ]
+  }
+
+  provisioner "breakpoint" {
+    disable = true
+    note    = "Breakpoint: to troubleshoot 'first' executions"
   }
 
 }

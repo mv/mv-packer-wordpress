@@ -30,3 +30,10 @@ Resources:
         - {Key: "App"     , Value: "wordpress"}
         - {Key: "Customer", Value: "AGE"}
 
+Outputs:
+
+  InstanceId:  {Description: "Instance id" , Value:{"Ref": "WP01"                        }, Export:{ Name:{"Fn::Sub": "${AWS::StackName}-InstanceId" } } }
+  InstanceIP:  {Description: "Instance IP" , Value:{"Fn::GetAtt":["WP01","PublicIp"     ]}, Export:{ Name:{"Fn::Sub": "${AWS::StackName}-InstanceIP" } } }
+
+
+

@@ -8,12 +8,14 @@ instance_type="${3}"
 
 aws cloudformation \
   create-stack --stack-name "${stack}" \
-  --template-body file://./wp-ec2-deploy.cf.yaml \
+  --template-body file://./wp-autoscaling.cf.yaml \
   --capabilities CAPABILITY_IAM \
   --parameters \
     "ParameterKey=AMI,ParameterValue=${ami}" \
-    "ParameterKey=InstanceType,ParameterValue=${instance_type}" \
-    "ParameterKey=InstanceType,ParameterValue=t4g.micro"
+    "ParameterKey=InstanceType,ParameterValue=${instance_type}"
+
+#   "ParameterKey=InstanceType,ParameterValue=t4g.micro"
+
 
 
 while true;
@@ -27,7 +29,7 @@ do
     date
     cat /tmp/output.txt
     echo
-    sleep 2
+    sleep 3
 done
 
 
